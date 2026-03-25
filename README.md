@@ -2,7 +2,8 @@
 
 > An interactive graph visualization + LLM-powered query interface for SAP O2C data.
 
-![Architecture](./docs/architecture.png)
+<img width="1440" height="811" alt="Screenshot 2026-03-25 at 10 49 52 PM" src="https://github.com/user-attachments/assets/bb245d63-b160-4bdc-859f-fdc80846c9bd" />
+
 
 ## Quick Start
 
