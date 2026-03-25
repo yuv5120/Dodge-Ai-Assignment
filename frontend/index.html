@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DodgeAI — Order to Cash Graph Explorer</title>
+  <meta name="description" content="Explore SAP Order-to-Cash data through an interactive graph. Query relationships with natural language powered by AI." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/style.css?v=2" />
+</head>
+<body>
+  <!-- ── Top Bar ──────────────────────────────────────────────────── -->
+  <header class="topbar">
+    <div class="topbar-left">
+      <button class="icon-btn sidebar-toggle" id="sidebarToggle" title="Toggle sidebar">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="3" x2="9" y2="21"/>
+        </svg>
+      </button>
+      <nav class="breadcrumb">
+        <span class="breadcrumb-dim">Mapping</span>
+        <span class="breadcrumb-sep">/</span>
+        <span class="breadcrumb-active">Order to Cash</span>
+      </nav>
+    </div>
+    <div class="topbar-center">
+      <div class="search-bar" id="searchBar">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+        <input type="text" id="searchInput" placeholder="Search nodes…" autocomplete="off" />
+        <div class="search-results" id="searchResults"></div>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <div class="stats-pill" id="statsPill">Loading graph…</div>
+      <button class="icon-btn" id="fitBtn" title="Fit to screen">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- ── Main Layout ──────────────────────────────────────────────── -->
+  <main class="app-layout">
+    <!-- Graph Panel -->
+    <section class="graph-panel" id="graphPanel">
+      <div class="graph-toolbar">
+        <button class="toolbar-btn active" id="btnMinimize">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 3 6 6m0-6-6 6M9 21l-6-6m0 6 6-6"/></svg>
+          Fit View
+        </button>
+        <button class="toolbar-btn" id="btnToggleOverlay">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/></svg>
+          <span id="overlayBtnText">Hide Labels</span>
+        </button>
+        <div class="toolbar-sep"></div>
+        <!-- Legend -->
+        <div class="legend" id="legend"></div>
+      </div>
+
+      <!-- Node Detail Panel -->
+      <div class="node-detail" id="nodeDetail" style="display:none;">
+        <div class="node-detail-header">
+          <div class="node-detail-type-badge" id="nodeDetailType"></div>
+          <button class="icon-btn close-btn" id="closeNodeDetail">✕</button>
+        </div>
+        <h3 id="nodeDetailTitle"></h3>
+        <div class="node-detail-props" id="nodeDetailProps"></div>
+        <div class="node-detail-neighbors">
+          <h4>Connections (<span id="neighborCount">0</span>)</h4>
+          <div class="neighbor-list" id="neighborList"></div>
+        </div>
+      </div>
+
+      <!-- Graph canvas -->
+      <div id="graphContainer"></div>
+
+      <!-- Loading overlay -->
+      <div class="graph-loading" id="graphLoading">
+        <div class="spinner"></div>
+        <p>Building knowledge graph…</p>
+      </div>
+    </section>
+
+    <!-- Chat Panel -->
+    <aside class="chat-panel" id="chatPanel">
+      <div class="chat-header">
+        <div>
+          <div class="chat-title">Chat with Graph</div>
+          <div class="chat-subtitle">Order to Cash</div>
+        </div>
+      </div>
+
+      <div class="chat-messages" id="chatMessages">
+        <!-- Welcome message -->
+        <div class="chat-msg assistant">
+          <div class="msg-avatar">D</div>
+          <div class="msg-bubble">
+            <div class="msg-name">DodgeAI <span class="msg-role-tag">Graph Agent</span></div>
+            <p>Hi! I can help you analyze the <strong>Order to Cash</strong> process. Ask me questions like:</p>
+            <ul>
+              <li>Which products have the most billing documents?</li>
+              <li>Trace billing document 90504248 end to end</li>
+              <li>Show sales orders delivered but not billed</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Suggestions -->
+      <div class="chat-suggestions" id="chatSuggestions">
+        <button class="suggestion-chip" data-q="Which products are associated with the highest number of billing documents?">Top billed products</button>
+        <button class="suggestion-chip" data-q="Find sales orders that were delivered but never billed">Unmatched deliveries</button>
+        <button class="suggestion-chip" data-q="Show the full flow from sales order to payment for the top customers">Order-to-payment flow</button>
+        <button class="suggestion-chip" data-q="Which customers have outstanding unpaid billing documents?">Outstanding payments</button>
+      </div>
+
+      <div class="chat-input-area">
+        <div class="status-indicator" id="statusIndicator">
+          <span class="status-dot"></span>
+          <span id="statusText">DodgeAI is awaiting instructions</span>
+        </div>
+        <div class="chat-input-row">
+          <textarea id="chatInput" placeholder="Analyze anything" rows="1"></textarea>
+          <button class="send-btn" id="sendBtn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M22 2 11 13M22 2 15 22 11 13 2 9l20-7z"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <!-- SQL Viewer Modal -->
+  <div class="modal-overlay" id="sqlModal" style="display:none;">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Generated SQL Query</h3>
+        <button class="icon-btn" id="closeSqlModal">✕</button>
+      </div>
+      <pre class="sql-code" id="sqlCode"></pre>
+      <div class="data-table-wrap" id="dataTableWrap"></div>
+    </div>
+  </div>
+
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script src="/static/app.js"></script>
+</body>
+</html>
