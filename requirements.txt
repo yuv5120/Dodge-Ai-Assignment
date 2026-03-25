@@ -1,6 +1,6 @@
 fastapi==0.115.0
 uvicorn==0.30.0
-google-generativeai==0.8.6
+google-genai>=0.1.0
 networkx==3.4.2
 python-dotenv==1.0.1
 sse-starlette==2.1.3
